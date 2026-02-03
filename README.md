@@ -1,3 +1,10 @@
+# 概要
+Shopify公開を目的としたRemixフレームワーク使用したアプリ作成を予定
+以下の条件を満たす必要がある
+・帳票システムのフォーマット向けにCSV出力を行うアプリ
+・shopify->freeeのCSVを作ってみる
+
+
 # Shopify App Template - React Router
 
 This is a template for building a [Shopify app](https://shopify.dev/docs/apps/getting-started) using [React Router](https://reactrouter.com/). It was forked from the [Shopify Remix app template](https://github.com/Shopify/shopify-app-template-remix) and converted to React Router.
