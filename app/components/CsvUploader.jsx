@@ -5,6 +5,9 @@ export default function CsvUploader() {
   const [target, setTarget] = useState("freee");
   const [result, setResult] = useState(null);
 
+  // エラー確定後に true
+  const [downloadLocked, setDownloadLocked] = useState(false);
+
   function buildFormData() {
     const formData = new FormData();
     formData.append("file", file);
@@ -14,7 +17,6 @@ export default function CsvUploader() {
 
   async function handlePreview(e) {
     e.preventDefault();
-
     if (!file) return;
 
     const res = await fetch("/api/csv/preview", {
@@ -29,8 +31,37 @@ export default function CsvUploader() {
   async function handleDownload(e) {
     e.preventDefault();
 
-    if (!file || hasErrors) return;
+    if (downloadLocked) return;
 
+    if (!file) {
+      alert("CSVファイルを選択してください。");
+      return;
+    }
+
+    // ★ ダウンロード前に validation 専用 API を叩く
+    const validateRes = await fetch("/api/csv/preview", {
+      method: "POST",
+      body: buildFormData(),
+    });
+
+    const validateJson = await validateRes.json();
+
+    if (validateJson.errors?.length > 0) {
+      // ① ダイアログ表示
+      alert(
+        "CSVにエラーがあるためダウンロードできません。\n" +
+        "内容を修正するか、別のCSVを選択してください。"
+      );
+
+      // ② ダウンロードさせない
+      // ③ ボタンをロック
+      setDownloadLocked(true);
+      setResult(validateJson);
+
+      return;
+    }
+
+    // エラーなし → ダウンロード
     const res = await fetch("/api/csv/download", {
       method: "POST",
       body: buildFormData(),
@@ -49,8 +80,6 @@ export default function CsvUploader() {
     window.URL.revokeObjectURL(url);
   }
 
-  const hasErrors = result?.errors?.length > 0;
-
   return (
     <div>
       <form>
@@ -65,7 +94,11 @@ export default function CsvUploader() {
         <input
           type="file"
           accept=".csv"
-          onChange={(e) => setFile(e.target.files[0])}
+          onChange={(e) => {
+            setFile(e.target.files[0]);
+            setResult(null);
+            setDownloadLocked(false); // ★ CSV変更で解除
+          }}
         />
 
         <button type="button" onClick={handlePreview}>
@@ -75,41 +108,24 @@ export default function CsvUploader() {
         <button
           type="button"
           onClick={handleDownload}
-          disabled={hasErrors}
+          disabled={downloadLocked}
         >
           CSVをダウンロード
         </button>
       </form>
 
-      {result && (
-        <div style={{ marginTop: 20 }}>
-          <h3>プレビュー（{result.count}件）</h3>
-
-          {hasErrors ? (
-            <ErrorList errors={result.errors} />
-          ) : (
-            <pre>{JSON.stringify(result.preview, null, 2)}</pre>
-          )}
+      {result?.errors?.length > 0 && (
+        <div style={{ color: "red", marginTop: 20 }}>
+          <strong>エラーがあります：</strong>
+          <ul>
+            {result.errors.map((e) => (
+              <li key={e.row}>
+                {e.row}行目：{e.messages.join(" / ")}
+              </li>
+            ))}
+          </ul>
         </div>
       )}
-    </div>
-  );
-}
-
-/**
- * エラー表示コンポーネント
- */
-function ErrorList({ errors }) {
-  return (
-    <div style={{ color: "red", marginBottom: 10 }}>
-      <strong>エラーがあります：</strong>
-      <ul>
-        {errors.map((e) => (
-          <li key={e.row}>
-            {e.row}行目：{e.messages.join(" / ")}
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }
