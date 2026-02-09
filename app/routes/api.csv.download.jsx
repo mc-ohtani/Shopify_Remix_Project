@@ -1,5 +1,6 @@
+import iconv from "iconv-lite";
 import { parse } from "csv-parse/sync";
-import { stringify } from "csv-stringify";
+import { stringify } from "csv-stringify/sync";
 import { convertCsv } from "../services/csv/index.js";
 
 export async function action({ request }) {
@@ -14,14 +15,23 @@ export async function action({ request }) {
 
   const { headers, rows } = convertCsv(target, records);
 
-  const csv = stringify(rows, {
+  // string設定でCSV生成
+  const csvUtf8 = stringify(rows, {
     header: true,
     columns: headers,
   });
 
-  return new Response(csv, {
+  // マネーフォワードはShift_JIS、freeeはUTF-8で出力
+  const isMoneyForward = target === "moneyforward";
+  const body = isMoneyForward
+    ? iconv.encode(csvUtf8, "cp932") // Buffer
+    : csvUtf8; // string
+
+  return new Response(body, {
     headers: {
-      "Content-Type": "text/csv; charset=utf-8",
+      "Content-Type": isMoneyForward
+        ? "text/csv; charset=Shift_JIS"
+        : "text/csv; charset=utf-8",
       "Content-Disposition": `attachment; filename=${target}.csv`,
     },
   });
