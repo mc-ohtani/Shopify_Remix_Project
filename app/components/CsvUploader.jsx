@@ -63,7 +63,8 @@ export default function CsvUploader() {
           プレビュー
         </button>
 
-        <button type="button" onClick={handleDownload}>
+        <button type="button" onClick={handleDownload}
+          disabled={result?.errors?.length > 0}>
           CSVをダウンロード
         </button>
       </form>
@@ -71,7 +72,23 @@ export default function CsvUploader() {
       {result && (
         <div style={{ marginTop: 20 }}>
           <h3>プレビュー（{result.count}件）</h3>
-          <pre>{JSON.stringify(result.preview, null, 2)}</pre>
+
+          {result.errors.length > 0 ? (
+            // エラーがある場合
+            <div style={{ color: "red", marginBottom: 10 }}>
+              <strong>エラーがあります：</strong>
+              <ul>
+                {result.errors.map((e) => (
+                  <li key={e.row}>
+                    {e.row}行目：{e.messages.join(" / ")}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            // エラーがない場合だけプレビュー表示
+            <pre>{JSON.stringify(result.preview, null, 2)}</pre>
+          )}
         </div>
       )}
     </div>
