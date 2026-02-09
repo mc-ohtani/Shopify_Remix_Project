@@ -6,21 +6,15 @@ export async function action({ request }) {
   const file = formData.get("file");
   const target = formData.get("target");
 
-  if (!file) {
-    return new Response("No file uploaded", { status: 400 });
-  }
-
-  const text = await file.text();
-
-  const records = parse(text, {
+  const records = parse(await file.text(), {
     columns: true,
     skip_empty_lines: true,
   });
 
-  const converted = convertCsv(target, records);
+  const { rows } = convertCsv(target, records);
 
   return Response.json({
-    count: converted.length,
-    preview: converted.slice(0, 10), // ← プレビュー用
+    count: rows.length,
+    preview: rows.slice(0, 10),
   });
 }

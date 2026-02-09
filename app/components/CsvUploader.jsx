@@ -5,25 +5,49 @@ export default function CsvUploader() {
   const [target, setTarget] = useState("freee");
   const [result, setResult] = useState(null);
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-
+  function buildFormData() {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("target", target);
+    return formData;
+  }
 
-    const res = await fetch("/api/csv", {
+  async function handlePreview(e) {
+    e.preventDefault();
+
+    const res = await fetch("/api/csv/preview", {
       method: "POST",
-      body: formData,
+      body: buildFormData(),
     });
 
-    const json = await res.json();
-    setResult(json);
+    setResult(await res.json());
   }
+
+  async function handleDownload(e) {
+    e.preventDefault();
+
+    const res = await fetch("/api/csv/download", {
+      method: "POST",
+      body: buildFormData(),
+    });
+
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${target}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    window.URL.revokeObjectURL(url);
+  }
+
 
   return (
     <div>
-      <form onSubmit={handleSubmit}>
+      <form>
         <select value={target} onChange={(e) => setTarget(e.target.value)}>
           <option value="freee">freee</option>
           <option value="moneyforward">マネーフォワード</option>
@@ -35,7 +59,13 @@ export default function CsvUploader() {
           onChange={(e) => setFile(e.target.files[0])}
         />
 
-        <button type="submit">変換</button>
+        <button type="button" onClick={handlePreview}>
+          プレビュー
+        </button>
+
+        <button type="button" onClick={handleDownload}>
+          CSVをダウンロード
+        </button>
       </form>
 
       {result && (

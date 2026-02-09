@@ -1,14 +1,32 @@
+import { convert as freeeConvert } from "./freee/convert.js";
+import { headers as freeeHeaders } from "./freee/headers.js";
 
-import { convertFreee } from "./freee.js";
-import { convertMoneyForward } from "./moneyforward.js";
+import { convert as mfConvert } from "./moneyforward/convert.js";
+import { headers as mfHeaders } from "./moneyforward/headers.js";
+
+const registry = {
+  freee: {
+    headers: freeeHeaders,
+    convert: freeeConvert,
+  },
+  moneyforward: {
+    headers: mfHeaders,
+    convert: mfConvert,
+  },
+};
+
+export function getTargets() {
+  return Object.keys(registry);
+}
 
 export function convertCsv(target, records) {
-  switch (target) {
-    case "freee":
-      return convertFreee(records);
-    case "moneyforward":
-      return convertMoneyForward(records);
-    default:
-      throw new Error("Unknown CSV target");
+  const entry = registry[target];
+  if (!entry) {
+    throw new Error(`Unknown target: ${target}`);
   }
+
+  return {
+    headers: entry.headers,
+    rows: entry.convert(records),
+  };
 }
