@@ -15,16 +15,21 @@ export default function CsvUploader() {
   async function handlePreview(e) {
     e.preventDefault();
 
+    if (!file) return;
+
     const res = await fetch("/api/csv/preview", {
       method: "POST",
       body: buildFormData(),
     });
 
-    setResult(await res.json());
+    const json = await res.json();
+    setResult(json);
   }
 
   async function handleDownload(e) {
     e.preventDefault();
+
+    if (!file || hasErrors) return;
 
     const res = await fetch("/api/csv/download", {
       method: "POST",
@@ -44,11 +49,15 @@ export default function CsvUploader() {
     window.URL.revokeObjectURL(url);
   }
 
+  const hasErrors = result?.errors?.length > 0;
 
   return (
     <div>
       <form>
-        <select value={target} onChange={(e) => setTarget(e.target.value)}>
+        <select
+          value={target}
+          onChange={(e) => setTarget(e.target.value)}
+        >
           <option value="freee">freee</option>
           <option value="moneyforward">マネーフォワード</option>
         </select>
@@ -63,8 +72,11 @@ export default function CsvUploader() {
           プレビュー
         </button>
 
-        <button type="button" onClick={handleDownload}
-          disabled={result?.errors?.length > 0}>
+        <button
+          type="button"
+          onClick={handleDownload}
+          disabled={hasErrors}
+        >
           CSVをダウンロード
         </button>
       </form>
@@ -73,24 +85,31 @@ export default function CsvUploader() {
         <div style={{ marginTop: 20 }}>
           <h3>プレビュー（{result.count}件）</h3>
 
-          {result.errors.length > 0 ? (
-            // エラーがある場合
-            <div style={{ color: "red", marginBottom: 10 }}>
-              <strong>エラーがあります：</strong>
-              <ul>
-                {result.errors.map((e) => (
-                  <li key={e.row}>
-                    {e.row}行目：{e.messages.join(" / ")}
-                  </li>
-                ))}
-              </ul>
-            </div>
+          {hasErrors ? (
+            <ErrorList errors={result.errors} />
           ) : (
-            // エラーがない場合だけプレビュー表示
             <pre>{JSON.stringify(result.preview, null, 2)}</pre>
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * エラー表示コンポーネント
+ */
+function ErrorList({ errors }) {
+  return (
+    <div style={{ color: "red", marginBottom: 10 }}>
+      <strong>エラーがあります：</strong>
+      <ul>
+        {errors.map((e) => (
+          <li key={e.row}>
+            {e.row}行目：{e.messages.join(" / ")}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
