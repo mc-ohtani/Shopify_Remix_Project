@@ -121,13 +121,13 @@ export default function Index() {
         </s-paragraph>
       </s-section>
 
-      <s-section>
+      <s-section heading="指定CSVの変換機能">
         <div>
           <CsvUploader />
         </div>
       </s-section>
 
-      <s-section>
+      <s-section heading="Shopifyデータの変換機能">
         <div>
           <ShopifyConverter />
         </div>

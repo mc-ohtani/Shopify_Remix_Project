@@ -4,19 +4,16 @@ export default function CsvUploader() {
   const [file, setFile] = useState(null);
   const [target, setTarget] = useState("freee");
   const [result, setResult] = useState(null);
-
-  // エラー確定後に true
   const [downloadLocked, setDownloadLocked] = useState(false);
 
   function buildFormData() {
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("target", target);
-    return formData;
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("target", target);
+    return fd;
   }
 
-  async function handlePreview(e) {
-    e.preventDefault();
+  async function handlePreview() {
     if (!file) return;
 
     const res = await fetch("/api/csv/preview", {
@@ -26,96 +23,71 @@ export default function CsvUploader() {
 
     const json = await res.json();
     setResult(json);
+
+    if (json.errors?.length > 0) {
+      setDownloadLocked(true);
+    }
   }
 
-  async function handleDownload(e) {
-    e.preventDefault();
-
-    if (downloadLocked) return;
-
+  async function handleDownload() {
     if (!file) {
-      alert("CSVファイルを選択してください。");
+      alert("CSVファイルを選択してください");
       return;
     }
 
-    // ★ ダウンロード前に validation 専用 API を叩く
-    const validateRes = await fetch("/api/csv/preview", {
-      method: "POST",
-      body: buildFormData(),
-    });
-
-    const validateJson = await validateRes.json();
-
-    if (validateJson.errors?.length > 0) {
-      // ① ダイアログ表示
-      alert(
-        "CSVにエラーがあるためダウンロードできません。\n" +
-        "内容を修正するか、別のCSVを選択してください。"
-      );
-
-      // ② ダウンロードさせない
-      // ③ ボタンをロック
-      setDownloadLocked(true);
-      setResult(validateJson);
-
+    if (downloadLocked) {
+      alert("エラーがあるためダウンロードできません");
       return;
     }
 
-    // エラーなし → ダウンロード
     const res = await fetch("/api/csv/download", {
       method: "POST",
       body: buildFormData(),
     });
 
     const blob = await res.blob();
-    const url = window.URL.createObjectURL(blob);
+    const url = URL.createObjectURL(blob);
 
     const a = document.createElement("a");
     a.href = url;
     a.download = `${target}.csv`;
-    document.body.appendChild(a);
     a.click();
-    a.remove();
 
-    window.URL.revokeObjectURL(url);
+    URL.revokeObjectURL(url);
   }
 
   return (
     <div>
-      <form>
-        <select
-          value={target}
-          onChange={(e) => setTarget(e.target.value)}
-        >
-          <option value="freee">freee</option>
-          <option value="moneyforward">マネーフォワード</option>
-        </select>
+      <select value={target} onChange={(e) => setTarget(e.target.value)}>
+        <option value="freee">freee</option>
+        <option value="moneyforward">マネーフォワード</option>
+      </select>
 
-        <input
-          type="file"
-          accept=".csv"
-          onChange={(e) => {
-            setFile(e.target.files[0]);
-            setResult(null);
-            setDownloadLocked(false); // ★ CSV変更で解除
-          }}
-        />
+      <input
+        type="file"
+        accept=".csv"
+        onChange={(e) => {
+          setFile(e.target.files[0]);
+          setResult(null);
+          setDownloadLocked(false);
+        }}
+      />
 
+      <div style={{ marginTop: 8 }}>
         <button type="button" onClick={handlePreview}>
           プレビュー
         </button>
-
         <button
           type="button"
           onClick={handleDownload}
           disabled={downloadLocked}
         >
-          CSVをダウンロード
+          CSVダウンロード
         </button>
-      </form>
+      </div>
 
       {result?.errors?.length > 0 && (
-        <div style={{ color: "red", marginTop: 20 }}>
+        <div style={{ color: "red", marginTop: 12 }}>
           <strong>エラーがあります：</strong>
           <ul>
             {result.errors.map((e) => (
@@ -125,6 +97,12 @@ export default function CsvUploader() {
             ))}
           </ul>
         </div>
+      )}
+
+      {result?.preview && (
+        <pre style={{ marginTop: 12 }}>
+          {JSON.stringify(result.preview, null, 2)}
+        </pre>
       )}
     </div>
   );
