@@ -10,7 +10,9 @@ export async function action({ request }) {
   const records = parse(await file.text(), {
     columns: true,
     skip_empty_lines: true,
-    delimiter: "\t",
+    // delimiter: "\t" を削除するか、以下のようにリラックスさせます
+    relax_column_count: true,
+    trim: true, // 前後の空白を自動除去
   });
 
   const { rows } = convertCsv(target, records);

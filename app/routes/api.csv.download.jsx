@@ -11,6 +11,8 @@ export async function action({ request }) {
   const records = parse(await file.text(), {
     columns: true,
     skip_empty_lines: true,
+    // delimiter: "\t" が残っていたら削除（または自動認識に任せる）
+    trim: true,
   });
 
   const { headers, rows } = convertCsv(target, records);
