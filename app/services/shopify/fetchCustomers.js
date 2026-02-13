@@ -1,5 +1,3 @@
-// app/services/shopify/fetchCustomers.js
-
 export async function fetchCustomers(admin) {
   const response = await admin.graphql(`
     #graphql

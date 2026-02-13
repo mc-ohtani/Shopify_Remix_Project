@@ -1,16 +1,16 @@
-import { fetchCustomers } from "./fetchCustomers";
-import { convertShopify } from "./convert";
+import { fetchCustomers } from "./fetchCustomers.js";
+import { fetchOrders } from "./fetchOrders.js";
+import { convertShopify } from "./convertShopify.js";
+import { convertOrders } from "./convertOrders.js";
 
 export async function buildShopifyCsv(admin, resource, target) {
-  let records = [];
-
   if (resource === "customers") {
-    records = await fetchCustomers(admin);
-  } else {
-    throw new Error("unsupported resource");
+    const customers = await fetchCustomers(admin);
+    return convertShopify(target, customers);
   }
 
-  const { headers, rows } = convertShopify(target, records);
-
-  return { headers, rows };
+  if (resource === "orders") {
+    const orders = await fetchOrders(admin);
+    return convertOrders(target, orders);
+  }
 }
