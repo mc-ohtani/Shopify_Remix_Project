@@ -14,18 +14,34 @@ export default function CsvUploader() {
   }
 
   async function handlePreview() {
-    if (!file) return;
+    if (!file) {
+      alert("CSVファイルを選択してください");
+      return;
+    }
 
-    const res = await fetch("/api/csv/preview", {
-      method: "POST",
-      body: buildFormData(),
-    });
+    // 1. 新しいリクエストの前に、前回の結果（プレビューとエラー）をリセット
+    setResult(null);
+    setDownloadLocked(false);
 
-    const json = await res.json();
-    setResult(json);
+    try {
+      const res = await fetch("/api/csv/preview", {
+        method: "POST",
+        body: buildFormData(),
+      });
 
-    if (json.errors?.length > 0) {
-      setDownloadLocked(true);
+      const json = await res.json();
+
+      // 2. 結果をセット
+      setResult(json);
+
+      // 3. エラーがある場合の処理
+      if (json.errors && json.errors.length > 0) {
+        setDownloadLocked(true);
+        // エラーがある時は、プレビューデータが入っていたとしてもクリアする
+        setResult(prev => ({ ...prev, preview: null }));
+      }
+    } catch (error) {
+      alert("プレビューの取得に失敗しました");
     }
   }
 
@@ -35,25 +51,49 @@ export default function CsvUploader() {
       return;
     }
 
-    if (downloadLocked) {
-      alert("エラーがあるためダウンロードできません");
-      return;
+    try {
+      const checkRes = await fetch("/api/csv/preview", {
+        method: "POST",
+        body: buildFormData(),
+      });
+      const checkJson = await checkRes.json();
+
+      // 不備が見つかった場合
+      if (checkJson.errors && checkJson.errors.length > 0) {
+        setResult({
+          ...checkJson,
+          preview: null
+        });
+
+        setDownloadLocked(true);
+
+        setTimeout(() => {
+          alert("項目に不備があるためダウンロードできません。エラー内容を確認してください。");
+        }, 100);
+
+        return;
+      }
+
+      // --- 以下、不備がない場合のダウンロード処理 ---
+      const res = await fetch("/api/csv/download", {
+        method: "POST",
+        body: buildFormData(),
+      });
+
+      if (!res.ok) throw new Error("Download failed");
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${target}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+    } catch (error) {
+      console.error(error);
+      alert("通信エラーが発生しました。");
     }
-
-    const res = await fetch("/api/csv/download", {
-      method: "POST",
-      body: buildFormData(),
-    });
-
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${target}.csv`;
-    a.click();
-
-    URL.revokeObjectURL(url);
   }
 
   return (
@@ -73,14 +113,21 @@ export default function CsvUploader() {
         }}
       />
 
-      <div style={{ marginTop: 8 }}>
+      <div style={{ marginTop: 8, display: 'flex', gap: '8px' }}>
         <button type="button" onClick={handlePreview}>
           プレビュー
         </button>
+
         <button
           type="button"
           onClick={handleDownload}
+          // downloadLocked が true になった時だけグレーアウト
           disabled={downloadLocked}
+          style={{
+            cursor: downloadLocked ? 'not-allowed' : 'pointer',
+            opacity: downloadLocked ? 0.5 : 1,
+            backgroundColor: downloadLocked ? '#ebebeb' : '' // グレー背景を強調
+          }}
         >
           CSVダウンロード
         </button>
