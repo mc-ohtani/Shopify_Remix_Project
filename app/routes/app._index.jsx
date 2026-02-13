@@ -1,12 +1,20 @@
 import { useEffect } from "react";
-import { useFetcher } from "react-router";
-import { useAppBridge } from "@shopify/app-bridge-react";
-import { boundary } from "@shopify/shopify-app-react-router/server";
+import { useFetcher, Link } from "@remix-run/react"; // ここを react-router から @remix-run/react に修正
+import {
+  Page,
+  Layout,
+  Text,
+  Card,
+  Button,
+  BlockStack,
+  Box,
+  List,
+  InlineStack,
+} from "@shopify/polaris";
+import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 import CsvUploader from "../components/CsvUploader";
 import ShopifyConverter from "../components/ShopifyConverter";
-
-
 
 export const loader = async ({ request }) => {
   await authenticate.admin(request);
@@ -54,7 +62,7 @@ export const action = async ({ request }) => {
   const variantId = product.variants.edges[0].node.id;
   const variantResponse = await admin.graphql(
     `#graphql
-    mutation shopifyReactRouterTemplateUpdateVariant($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
+    mutation shopifyRemixTemplateUpdateVariant($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
       productVariantsBulkUpdate(productId: $productId, variants: $variants) {
         productVariants {
           id
@@ -85,57 +93,104 @@ export default function Index() {
   const isLoading =
     ["loading", "submitting"].includes(fetcher.state) &&
     fetcher.formMethod === "POST";
+  const productId = fetcher.data?.product?.id.replace(
+    "gid://shopify/Product/",
+    "",
+  );
 
   useEffect(() => {
-    if (fetcher.data?.product?.id) {
+    if (productId) {
       shopify.toast.show("Product created");
     }
-  }, [fetcher.data?.product?.id, shopify]);
+  }, [productId, shopify]);
   const generateProduct = () => fetcher.submit({}, { method: "POST" });
 
-  return (
-    <s-page heading="Shopify app template">
-      <s-button slot="primary-action" onClick={generateProduct}>
-        Generate a product
-      </s-button>
+return (
+    <Page title="注文データ変換アプリ">
+      <TitleBar title="Remix app template">
+        <button variant="primary" onClick={generateProduct}>
+          Generate a product
+        </button>
+      </TitleBar>
+      <BlockStack gap="500">
+        <Layout>
+          <Layout.Section>
+            <BlockStack gap="500">
+              {/* セクション1: アプリの説明 */}
+              <Card>
+                <BlockStack gap="500">
+                  <BlockStack gap="200">
+                    <Text as="h2" variant="headingMd">
+                      csvデータを指定形式に変換するアプリ
+                    </Text>
+                    <Text variant="bodyMd" as="p">
+                      ・csvデータを指定して指定形式に変換する
+                    </Text>
+                    <Text variant="bodyMd" as="p">
+                      ・Shopifyデータを指定形式に変換する
+                    </Text>
+                  </BlockStack>
 
-      <s-section heading="Hello, Shopify! はじめてのアプリ作成中🎉">
-        <s-paragraph>
-          This embedded app template uses{" "}
-          <s-link
-            href="https://shopify.dev/docs/apps/tools/app-bridge"
-            target="_blank"
-          >
-            App Bridge
-          </s-link>{" "}
-          interface examples like an{" "}
-          <s-link href="/app/additional">additional page in the app nav</s-link>
-          , as well as an{" "}
-          <s-link
-            href="https://shopify.dev/docs/api/admin-graphql"
-            target="_blank"
-          >
-            Admin GraphQL
-          </s-link>{" "}
-          mutation demo, to provide a starting point for app development.
-        </s-paragraph>
-      </s-section>
+                </BlockStack>
+              </Card>
 
-      <s-section heading="指定CSVの変換機能">
-        <div>
-          <CsvUploader />
-        </div>
-      </s-section>
+              {/* セクション2: 指定CSVの変換機能 */}
+              <Card>
+                <BlockStack gap="200">
+                  <Text as="h2" variant="headingMd">
+                    指定CSVの変換機能
+                  </Text>
+                  <Box padding="400" background="bg-surface-secondary" borderRadius="200">
+                    <CsvUploader />
+                  </Box>
+                </BlockStack>
+              </Card>
 
-      <s-section heading="Shopifyデータの変換機能">
-        <div>
-          <ShopifyConverter />
-        </div>
-      </s-section>
-    </s-page>
+              {/* セクション3: Shopifyデータの変換機能 */}
+              <Card>
+                <BlockStack gap="200">
+                  <Text as="h2" variant="headingMd">
+                    Shopifyデータの変換機能
+                  </Text>
+                  <Box padding="400" background="bg-surface-secondary" borderRadius="200">
+                    <ShopifyConverter />
+                  </Box>
+                </BlockStack>
+              </Card>
+            </BlockStack>
+          </Layout.Section>
+
+          <Layout.Section variant="oneThird">
+            <BlockStack gap="500">
+              <Card>
+                <BlockStack gap="200">
+                  <Text as="h2" variant="headingMd">
+                    App template specs
+                  </Text>
+                  <BlockStack gap="200">
+                    <InlineStack align="space-between">
+                      <Text as="span" variant="bodyMd">Framework</Text>
+                      <Link url="https://remix.run" target="_blank" removeUnderline>Remix</Link>
+                    </InlineStack>
+                    <InlineStack align="space-between">
+                      <Text as="span" variant="bodyMd">Database</Text>
+                      <Link url="https://www.prisma.io/" target="_blank" removeUnderline>Prisma</Link>
+                    </InlineStack>
+                    <InlineStack align="space-between">
+                      <Text as="span" variant="bodyMd">Interface</Text>
+                      <span>
+                        <Link url="https://polaris.shopify.com" target="_blank" removeUnderline>Polaris</Link>
+                        {", "}
+                        <Link url="https://shopify.dev/docs/apps/tools/app-bridge" target="_blank" removeUnderline>App Bridge</Link>
+                      </span>
+                    </InlineStack>
+                  </BlockStack>
+                </BlockStack>
+              </Card>
+            </BlockStack>
+          </Layout.Section>
+        </Layout>
+      </BlockStack>
+    </Page>
   );
 }
-
-export const headers = (headersArgs) => {
-  return boundary.headers(headersArgs);
-};
