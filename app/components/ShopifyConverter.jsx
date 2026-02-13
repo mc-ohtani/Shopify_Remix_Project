@@ -1,9 +1,10 @@
 import { useFetcher } from "react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function ShopifyConverter() {
     const fetcher = useFetcher();
-const [resource, setResource] = useState("orders");
+
+    const [resource, setResource] = useState("orders");
     const [target, setTarget] = useState("freee");
 
     const isLoading =
@@ -12,6 +13,27 @@ const [resource, setResource] = useState("orders");
     const result = fetcher.data;
     const hasNoData = result && result.count === 0;
     const hasData = result && result.count > 0;
+
+    /**
+     * CSVダウンロード処理
+     * actionから { csv, filename } が返ってきたら実行
+     */
+    useEffect(() => {
+        if (fetcher.data?.csv) {
+            const blob = new Blob([fetcher.data.csv], {
+                type: "text/csv;charset=utf-8;",
+            });
+
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute("download", fetcher.data.filename || "export.csv");
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+        }
+    }, [fetcher.data]);
 
     return (
         <div>
@@ -66,7 +88,7 @@ const [resource, setResource] = useState("orders");
                 </button>
             </fetcher.Form>
 
-            {/* ダウンロード */}
+            {/* ダウンロード（fetcherのまま） */}
             <fetcher.Form method="post" action="/app/shopify-download">
                 <input type="hidden" name="resource" value={resource} />
                 <input type="hidden" name="target" value={target} />
