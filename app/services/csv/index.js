@@ -4,6 +4,9 @@ import { headers as freeeHeaders } from "./freee/headers.js";
 import { convert as mfConvert } from "./moneyforward/convert.js";
 import { headers as mfHeaders } from "./moneyforward/headers.js";
 
+import { convert as yayoiConvert } from "./yayoi/convert.js";
+import { headers as yayoiHeaders } from "./yayoi/headers.js";
+
 const registry = {
   freee: {
     headers: freeeHeaders,
@@ -12,6 +15,10 @@ const registry = {
   moneyforward: {
     headers: mfHeaders,
     convert: mfConvert,
+  },
+  yayoi: {
+    headers: yayoiHeaders,
+    convert: yayoiConvert,
   },
 };
 

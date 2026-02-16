@@ -101,6 +101,7 @@ export default function CsvUploader() {
       <select value={target} onChange={(e) => setTarget(e.target.value)}>
         <option value="freee">freee</option>
         <option value="moneyforward">マネーフォワード</option>
+        <option value="yayoi">弥生会計</option>
       </select>
 
       <input
