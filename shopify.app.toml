@@ -2,12 +2,11 @@
 
 client_id = "720bd9ac5905a1a3e59b65436919d40f"
 name = "RemixStoreApp"
-application_url = "https://example.com"
+application_url = "https://shopify-remix-project.vercel.app"
 embedded = true
 
 [build]
 automatically_update_urls_on_dev = true
-include_config_on_deploy = true
 
 [webhooks]
 api_version = "2026-04"
@@ -25,4 +24,4 @@ api_version = "2026-04"
 scopes = "read_customers,read_orders,write_products"
 
 [auth]
-redirect_urls = [ "https://example.com/api/auth" ]
+redirect_urls = [ "https://shopify-remix-project.vercel.app/api/auth" ]
