@@ -2,7 +2,7 @@
 
 client_id = "720bd9ac5905a1a3e59b65436919d40f"
 name = "RemixStoreApp"
-application_url = "https://shopify-remix-project.vercel.app"
+application_url = "https://shopify-remix-project-git-develop-ohtanis-projects-2954c774.vercel.app"
 embedded = true
 
 [build]
@@ -24,4 +24,8 @@ api_version = "2026-04"
 scopes = "read_customers,read_orders,write_products"
 
 [auth]
-redirect_urls = [ "https://shopify-remix-project.vercel.app/api/auth" ]
+redirect_urls = [
+  "https://shopify-remix-project-git-develop-ohtanis-projects-2954c774.vercel.app/api/auth",
+  "https://shopify-remix-project-git-develop-ohtanis-projects-2954c774.vercel.app/auth/callback",
+  "https://shopify-remix-project-git-develop-ohtanis-projects-2954c774.vercel.app/auth/shopify/callback"
+]
