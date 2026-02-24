@@ -10,8 +10,7 @@ generator client {
 // See https://www.prisma.io/docs/orm/reference/prisma-schema-reference#string for more information
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
-  directUrl = env("DATABASE_URL")
+  url      = "postgres://postgres:xZObYWL6F2sR8B1J@db.pvoilibkvkbsbcwwilqi.supabase.co:6543/postgres?pgbouncer=true&connection_limit=1"
 }
 
 model Session {
