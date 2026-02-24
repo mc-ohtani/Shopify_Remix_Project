@@ -66,13 +66,7 @@ export default defineConfig({
   ],
   build: {
     assetsInlineLimit: 0,
-    target: "es2022"
-  },
-  esbuild: {
-    target: "es2022",
-    supported: {
-      "import-attributes": true 
-    }
+    target: "esnext",
   },
   optimizeDeps: {
     include: ["@shopify/app-bridge-react", "@shopify/polaris"],
