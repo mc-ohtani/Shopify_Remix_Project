@@ -14,7 +14,7 @@ datasource db {
   url      = "postgres://postgres:xZObYWL6F2sR8B1J@db.pvoilibkvkbsbcwwilqi.supabase.co:6543/postgres?pgbouncer=true&connection_limit=1"
 }
 
-model Session {
+model session {
   id                  String    @id
   shop                String
   state               String
@@ -32,6 +32,5 @@ model Session {
   emailVerified       Boolean?  @default(false)
   refreshToken        String?
   refreshTokenExpires DateTime?
-  
-  @@map("session")
+
 }
