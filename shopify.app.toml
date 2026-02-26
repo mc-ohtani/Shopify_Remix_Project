@@ -5,19 +5,16 @@ name = "RemixStoreApp"
 application_url = "https://shopify-remix-project.vercel.app"
 embedded = true
 
-[build]
-automatically_update_urls_on_dev = true
-
 [webhooks]
 api_version = "2026-04"
 
   [[webhooks.subscriptions]]
-  topics = [ "app/uninstalled" ]
-  uri = "/webhooks/app/uninstalled"
-
-  [[webhooks.subscriptions]]
   topics = [ "app/scopes_update" ]
   uri = "/webhooks/app/scopes_update"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/uninstalled" ]
+  uri = "/webhooks/app/uninstalled"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
@@ -25,7 +22,8 @@ scopes = "read_customers,read_orders,write_products"
 
 [auth]
 redirect_urls = [
-  "https://shopify-remix-project.vercel.app/api/auth",
-  "https://shopify-remix-project.vercel.app/auth/callback",
-  "https://shopify-remix-project.vercel.app/auth/shopify/callback"
+  "https://remix-store-app-v2.vercel.app/api/auth",
+  "https://remix-store-app-v2.vercel.app/api/auth/callback",
+  "https://remix-store-app-v2.vercel.app/auth/callback",  # これを追加
+  "https://remix-store-app-v2.vercel.app/auth/shopify/callback"
 ]
